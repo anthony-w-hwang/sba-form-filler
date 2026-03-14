@@ -1621,6 +1621,11 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
+    st.markdown('<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0"/>', unsafe_allow_html=True)
+    st.markdown('<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;padding:0 12px 6px 12px">Prototypes</div>', unsafe_allow_html=True)
+    st.page_link("pages/1_Prequal_Chat.py", label="💬  AI Chat Prequal")
+    st.page_link("pages/2_Prequal_Form.py", label="📋  Prequal Form (v2)")
+
 # Router
 if st.session_state.view == "pipeline":
     view_pipeline()
