@@ -1622,9 +1622,14 @@ with st.sidebar:
     )
 
     st.markdown('<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0"/>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;padding:0 12px 6px 12px">Prototypes</div>', unsafe_allow_html=True)
-    st.page_link("pages/1_Prequal_Chat.py", label="💬  AI Chat Prequal")
-    st.page_link("pages/2_Prequal_Form.py", label="📋  Prequal Form (v2)")
+    st.markdown(
+        '<div style="padding:0 12px 6px 12px">'
+        '<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Prototypes</div>'
+        '<a href="/Prequal_Chat" target="_self" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:6px 0">💬&nbsp;&nbsp;AI Chat Prequal</a>'
+        '<a href="/Prequal_Form" target="_self" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:6px 0">📋&nbsp;&nbsp;Prequal Form (v2)</a>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 # Router
 if st.session_state.view == "pipeline":
