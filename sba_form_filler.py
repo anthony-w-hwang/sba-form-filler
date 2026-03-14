@@ -13,7 +13,10 @@ import os
 import sys
 import argparse
 import requests
-from fillpdf import fillpdfs
+try:
+    from fillpdf import fillpdfs
+except Exception:
+    fillpdfs = None
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FORMS_DIR = os.path.join(BASE_DIR, "forms")
