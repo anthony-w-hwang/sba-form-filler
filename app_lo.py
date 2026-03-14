@@ -1214,72 +1214,253 @@ def view_deal():
         profile, meta = get_profile(deal_id)
 
         st.markdown('<div class="section-title">Underwriting Score</div>', unsafe_allow_html=True)
-        st.caption("We are a broker, not a lender. This score pre-qualifies the file and estimates approval probability — the banking partner makes the final credit decision.")
+        st.caption("We are a broker, not a lender. This score pre-qualifies the file and estimates lender approval probability based on SBA SOP 50 10 8 — the banking partner makes the final credit decision.")
+
+        already_scored = st.session_state.get(f"uw_scored_{deal_id}")
 
         # ── Input form ──────────────────────────────────────────────
-        with st.expander("Enter underwriting inputs", expanded=not st.session_state.get(f"uw_scored_{deal_id}")):
+        with st.expander("Underwriting Inputs" + (" ✓" if already_scored else " — fill in to generate score"), expanded=not already_scored):
             with st.form(f"uw_form_{deal_id}"):
-                col1, col2 = st.columns(2)
 
-                with col1:
-                    fico_tier = st.selectbox("Primary Guarantor FICO", [
-                        "", "740+", "720-739", "700-719", "680-699",
-                        "660-679", "650-659", "below_650"
-                    ], help="Credit score of the primary guarantor")
+                # ── SECTION 1: Eligibility Hard Stops ─────────────
+                st.markdown("#### Eligibility — Hard Stops")
+                st.caption("Any checked item triggers an automatic decline before scoring. Verify these first.")
+                hs1, hs2, hs3 = st.columns(3)
+                with hs1:
+                    delinquent   = st.checkbox("Delinquent federal debt", help="Any current unpaid debt to the federal government (IRS, SBA, student loans, etc.)")
+                    federal_debar = st.checkbox("Federal debarment/suspension", help="Principal or business is currently debarred or suspended from federal programs")
+                    active_bk    = st.checkbox("Active bankruptcy", help="Open bankruptcy proceeding for the business or any principal")
+                with hs2:
+                    prior_default   = st.checkbox("Prior SBA default (with loss)", help="Previous SBA loan that resulted in a federal guaranty loss")
+                    incarcerated    = st.checkbox("Currently incarcerated / on probation or parole", help="Any principal is currently incarcerated, on probation, or on parole — hard stop per SOP")
+                    pending_ind     = st.checkbox("Pending felony indictment", help="Outstanding indictment against any principal, even without conviction")
+                with hs3:
+                    illegal_biz     = st.checkbox("Illegal business activity", help="Any portion of operations is illegal under federal, state, or local law (includes cannabis)")
+                    ineligible_type = st.checkbox("Ineligible business type", help="Nonprofit, passive investment entity, financial business (bank/lender), gambling >1/3 revenue, pyramid scheme, etc.")
+                    citizenship_fail = st.checkbox("Citizenship/residency failure", help="<95% ownership by U.S. citizens, nationals, or lawful permanent residents (SOP 50 10 8, effective Jan 1, 2026)")
+                    sba_cap         = st.checkbox("SBA Express cap exceeded", help="Outstanding SBA Express balance + this loan > $500K")
 
-                    dscr_tier = st.selectbox("Debt Service Coverage Ratio (DSCR)", [
+                st.divider()
+
+                # ── SECTION 2: Credit Profile ─────────────────────
+                st.markdown("#### Credit Profile")
+                cc1, cc2, cc3 = st.columns(3)
+                with cc1:
+                    fico_tier = st.selectbox("Personal FICO (Primary Guarantor)", [
+                        "", "760+", "740-759", "720-739", "700-719",
+                        "680-699", "660-679", "650-659", "below_650"
+                    ], help="Personal credit score of primary guarantor. Single strongest predictor.")
+                with cc2:
+                    sbss_tier = st.selectbox("FICO SBSS Score", [
+                        "", "above_220", "200-220", "180-199", "165-179", "below_165"
+                    ], help="SBA Small Business Scoring Service (0–300). SBA minimum: 165. PLP lenders prefer 180+. Combines personal + business credit + financials.")
+                with cc3:
+                    paydex_tier = st.selectbox("D&B Paydex / Business Credit", [
+                        "", "80+", "70-79", "50-69", "below_50"
+                    ], help="D&B Paydex business payment score (0–100). 80+ = pays on time.")
+
+                cf1, cf2, cf3, cf4 = st.columns(4)
+                with cf1:
+                    open_collections = st.checkbox("Open collections on credit report", help="Number, recency, dollar amount matter — lender will require explanation")
+                with cf2:
+                    tax_liens = st.checkbox("Tax liens (federal or state)", help="Active tax liens. May constitute delinquent federal debt if IRS lien.")
+                with cf3:
+                    bk_discharged = st.checkbox("Prior bankruptcy (discharged)")
+                with cf4:
+                    criminal = st.checkbox("Criminal history disclosed", help="Not auto-decline but requires SBA Form 912 and lender evaluation")
+
+                years_since_bk = 0
+                if bk_discharged:
+                    years_since_bk = st.slider("Years since bankruptcy discharge", 0, 15, 3,
+                        help="SBA minimum: 2 years. Most PLP lenders: 3–5 years. Some require 7+.")
+
+                st.divider()
+
+                # ── SECTION 3: Financial Performance ─────────────
+                st.markdown("#### Financial Performance")
+                fp1, fp2, fp3 = st.columns(3)
+                with fp1:
+                    dscr_entity = st.selectbox("DSCR — Entity Level", [
                         "", "above_1.5", "1.35-1.5", "1.25-1.35",
                         "1.15-1.25", "1.0-1.15", "below_1.0"
-                    ], help="SBA standard: DSCR ≥ 1.25x")
+                    ], help="Business-level: Net Operating Income ÷ Total Business Debt Service. SBA min: 1.10x")
+                with fp2:
+                    dscr_global = st.selectbox("DSCR — Global Cash Flow", [
+                        "", "above_1.5", "1.35-1.5", "1.25-1.35",
+                        "1.10-1.25", "1.0-1.10", "below_1.0"
+                    ], help="Consolidates ALL income (all businesses, W-2, rental) minus ALL obligations (all debt, personal living expenses, taxes). SOP 50 10 8 required. SBA min: 1.10x")
+                with fp3:
+                    leverage_tier = st.selectbox("Debt-to-Tangible Net Worth", [
+                        "", "below_1", "1-2", "2-3", "3-4", "4-5", "above_5"
+                    ], help="Total Liabilities ÷ (Equity − Intangibles). Above 4:1 is a significant red flag. Required in credit memo by SOP 50 10 8.")
 
+                fp4, fp5, fp6 = st.columns(3)
+                with fp4:
+                    current_ratio = st.selectbox("Current Ratio (Working Capital)", [
+                        "", "above_2", "1.5-2", "1.25-1.5", "1.0-1.25", "below_1"
+                    ], help="Current Assets ÷ Current Liabilities. Below 1.0 = cannot cover short-term obligations.")
+                with fp5:
+                    rev_trend = st.selectbox("Revenue Trend (2–3 Year)", [
+                        "", "strong_growth", "moderate_growth", "flat",
+                        "slight_decline", "significant_decline"
+                    ], format_func=lambda x: x.replace("_"," ").title() if x else "",
+                    help="Year-over-year revenue change across most recent tax years. Required trend analysis in credit memo.")
+                with fp6:
+                    concentration = st.selectbox("Revenue Concentration Risk", [
+                        "", "none", "moderate", "significant", "highly_concentrated"
+                    ], format_func=lambda x: x.replace("_"," ").title() if x else "",
+                    help="Single customer dependency. >25% concentration is a risk flag most lenders document.")
+
+                fflag1, fflag2 = st.columns(2)
+                with fflag1:
+                    nsf_overdrafts = st.checkbox("NSF/overdrafts in bank statements", help="SOP 50 10 8 requires 2 months bank statements. Frequent overdrafts signal cash management issues.")
+                with fflag2:
+                    proceeds_eligible = st.selectbox("Use of Proceeds", [
+                        "eligible", "ineligible_or_unclear"
+                    ], format_func=lambda x: "Eligible SBA purpose" if x == "eligible" else "Ineligible or unclear",
+                    help="All proceeds must map to eligible SBA uses: working capital, equipment, real estate, acquisition, eligible refinancing.")
+
+                st.divider()
+
+                # ── SECTION 4: Business Profile ───────────────────
+                st.markdown("#### Business Profile")
+                bp1, bp2, bp3 = st.columns(3)
+                with bp1:
                     business_age_tier = st.selectbox("Business Age", [
                         "", "10+", "5-10", "3-5", "2-3", "1-2", "under_1"
-                    ], help="Years in operation")
-
-                with col2:
+                    ], help="Years in operation. Under 2 years = start-up, requiring projections + equity injection.")
+                with bp2:
                     industry = st.selectbox("Industry", [
                         "", "healthcare", "professional_services", "technology",
-                        "manufacturing", "wholesale", "transportation",
-                        "retail", "construction", "restaurant_food_service",
-                        "other", "gambling_adult"
-                    ], format_func=lambda x: x.replace("_", " ").title() if x else "")
+                        "manufacturing", "wholesale", "education", "transportation",
+                        "retail", "construction", "restaurant_food_service", "other", "gambling_adult"
+                    ], format_func=lambda x: x.replace("_"," ").title() if x else "")
+                with bp3:
+                    loan_purpose = st.selectbox("Loan Purpose", [
+                        "", "working_capital", "equipment", "real_estate",
+                        "acquisition", "refinance", "other"
+                    ], format_func=lambda x: x.replace("_"," ").title() if x else "")
 
-                    experience_tier = st.selectbox("Owner Industry Experience", [
+                bflag1, bflag2, bflag3 = st.columns(3)
+                with bflag1:
+                    is_startup = st.checkbox("Start-up business (<2 years)", help="Requires business plan, financial projections, and 10% equity injection")
+                    is_franchise = st.checkbox("Franchise business")
+                with bflag2:
+                    franchise_listed = False
+                    if is_franchise:
+                        franchise_listed = st.checkbox("Franchise on SBA Franchise Directory", help="Check sba.gov/franchise-directory. If not listed, requires additional eligibility analysis.")
+                with bflag3:
+                    existing_sba_bal = st.number_input("Existing SBA guaranteed balance ($)", min_value=0, value=0, step=10000,
+                        help="Outstanding SBA balance across all loans from all lenders. Express cap: $500K total.")
+
+                st.divider()
+
+                # ── SECTION 5: Owner & Guarantor ──────────────────
+                st.markdown("#### Owner & Guarantor")
+                og1, og2, og3 = st.columns(3)
+                with og1:
+                    exp_tier = st.selectbox("Owner Industry Experience", [
                         "", "10+", "5-10", "3-5", "1-3", "under_1"
-                    ], help="Years of management/industry experience")
+                    ], help="Direct management and industry experience of primary guarantor.")
+                with og2:
+                    net_worth_tier = st.selectbox("Personal Net Worth (Form 413)", [
+                        "", "strong_positive", "moderate_positive", "slight_positive",
+                        "near_zero", "negative"
+                    ], format_func=lambda x: {
+                        "strong_positive": "Strong positive (>2x loan amount)",
+                        "moderate_positive": "Moderate positive (>loan amount)",
+                        "slight_positive": "Slight positive (<loan amount)",
+                        "near_zero": "Near zero (<$25K)",
+                        "negative": "Negative net worth",
+                    }.get(x, x) if x else "",
+                    help="From SBA Form 413. Negative net worth = personal guarantee has limited practical value.")
+                with og3:
+                    citizenship = st.selectbox("Citizenship / Residency Status", [
+                        "citizen", "lpr", "other"
+                    ], format_func=lambda x: {
+                        "citizen": "U.S. Citizen or National",
+                        "lpr": "Lawful Permanent Resident (LPR)",
+                        "other": "Other (visa holder, etc.)",
+                    }.get(x, x),
+                    help="As of Jan 1, 2026: ≥95% ownership must be held by U.S. citizens, nationals, or LPRs. Other status = hard stop.")
 
-                st.markdown("**Flags & Compensating Factors**")
-                fc1, fc2, fc3 = st.columns(3)
-                with fc1:
-                    delinquent = st.checkbox("Delinquent federal debt", help="Hard stop — triggers automatic decline")
-                    criminal = st.checkbox("Criminal history disclosed")
-                with fc2:
-                    positive_cf = st.checkbox("Positive cash flow confirmed", value=True)
-                    collateral = st.checkbox("Collateral available")
-                with fc3:
-                    prior_default = st.checkbox("Prior SBA default", help="Hard stop")
-                    active_bk = st.checkbox("Active bankruptcy", help="Hard stop")
+                of1, of2 = st.columns(2)
+                with of1:
+                    key_person = st.checkbox("Key person risk (single owner, business depends on them)",
+                        help="Triggers life insurance requirement if loan not fully collateralized per SOP 50 10 8.")
+                with of2:
+                    equity_injection = st.checkbox("10% equity injection available (start-up/acquisition)",
+                        help="Required for start-ups and change-of-ownership. Must come from borrower's own funds or eligible seller note on full standby.")
 
-                submitted = st.form_submit_button("Run underwriting score", type="primary", use_container_width=True)
+                st.divider()
+
+                # ── SECTION 6: Collateral ─────────────────────────
+                st.markdown("#### Collateral")
+                st.caption("SOP 50 10 8: loans over $50K must be collateralized to maximum extent possible. SBA discount rates: real estate 85%, new equipment 75%, used equipment 50%, furniture/fixtures 10%, inventory/AR 10%.")
+                col_a, col_b, col_c = st.columns(3)
+                with col_a:
+                    collateral_avail = st.checkbox("Collateral available", value=False)
+                with col_b:
+                    collateral_type = st.selectbox("Collateral type", [
+                        "none", "real_estate", "equipment", "other"
+                    ], format_func=lambda x: x.replace("_"," ").title())
+                with col_c:
+                    loan_amount_input = st.number_input("Loan amount requested ($)", min_value=0, value=250000, step=10000)
+
+                submitted = st.form_submit_button("Run Underwriting Score", type="primary", use_container_width=True)
 
             if submitted:
-                hard_stops = []
-                if prior_default:
-                    hard_stops.append("prior_sba_default")
-                if active_bk:
-                    hard_stops.append("active_bankruptcy")
+                citizenship_fail_derived = (citizenship == "other")
+                sba_cap_exceeded = existing_sba_bal + loan_amount_input > 500000
 
                 inputs = {
-                    "fico_tier": fico_tier,
-                    "dscr_tier": dscr_tier,
-                    "business_age_tier": business_age_tier,
-                    "industry": industry,
-                    "experience_tier": experience_tier,
-                    "delinquent_federal_debt": delinquent,
-                    "criminal_history": criminal,
-                    "positive_cash_flow": positive_cf,
-                    "collateral_available": collateral,
-                    "hard_stops": hard_stops,
+                    # Hard stops
+                    "delinquent_federal_debt":    delinquent,
+                    "federal_debarment":          federal_debar,
+                    "active_bankruptcy":          active_bk,
+                    "prior_sba_default":          prior_default,
+                    "currently_incarcerated":     incarcerated,
+                    "pending_indictment":         pending_ind,
+                    "illegal_business":           illegal_biz,
+                    "ineligible_business_type":   ineligible_type,
+                    "citizenship_failure":        citizenship_fail or citizenship_fail_derived,
+                    "sba_cap_exceeded":           sba_cap or sba_cap_exceeded,
+                    # Credit
+                    "fico_tier":                  fico_tier,
+                    "sbss_tier":                  sbss_tier,
+                    "paydex_tier":                paydex_tier,
+                    "open_collections":           open_collections,
+                    "tax_liens":                  tax_liens,
+                    "bankruptcy_discharged":      bk_discharged,
+                    "years_since_bankruptcy":     years_since_bk,
+                    "criminal_history":           criminal,
+                    # Financial
+                    "dscr_entity_tier":           dscr_entity,
+                    "dscr_global_tier":           dscr_global,
+                    "leverage_tier":              leverage_tier,
+                    "current_ratio_tier":         current_ratio,
+                    "revenue_trend":              rev_trend,
+                    "revenue_concentration":      concentration,
+                    "nsf_overdrafts":             nsf_overdrafts,
+                    "use_of_proceeds_eligible":   proceeds_eligible == "eligible",
+                    # Business
+                    "business_age_tier":          business_age_tier,
+                    "industry":                   industry,
+                    "loan_purpose":               loan_purpose,
+                    "is_startup":                 is_startup,
+                    "is_franchise":               is_franchise,
+                    "franchise_on_sba_directory": franchise_listed,
+                    "existing_sba_balance":       existing_sba_bal,
+                    # Owner
+                    "experience_tier":            exp_tier,
+                    "net_worth_tier":             net_worth_tier,
+                    "equity_injection_available": equity_injection,
+                    "citizenship_status":         citizenship,
+                    "key_person_risk":            key_person,
+                    # Collateral
+                    "collateral_available":       collateral_avail,
+                    "collateral_type":            collateral_type,
+                    "loan_amount":                loan_amount_input,
                 }
                 st.session_state[f"uw_result_{deal_id}"] = inputs
                 st.session_state[f"uw_scored_{deal_id}"] = True
@@ -1290,9 +1471,9 @@ def view_deal():
             inputs = st.session_state[f"uw_result_{deal_id}"]
             result = score_application(inputs)
 
-            score = result["score"]
-            tier  = result["tier"]
-            color = result["tier_color"]
+            score     = result["score"]
+            tier      = result["tier"]
+            color     = result["tier_color"]
             hard_stop = result["hard_stop"]
 
             COLOR_MAP = {
@@ -1309,59 +1490,74 @@ def view_deal():
             <div style="background:{bg};border:1.5px solid {accent};border-radius:12px;padding:24px 28px;margin-bottom:20px">
                 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
                     <div>
-                        <div style="font-size:13px;font-weight:600;color:{text};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">
-                            Underwriting Score
-                        </div>
+                        <div style="font-size:13px;font-weight:600;color:{text};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Underwriting Score</div>
                         <div style="font-size:52px;font-weight:800;color:{text};letter-spacing:-2px;line-height:1">{score}</div>
                         <div style="font-size:12px;color:{text};opacity:0.7;margin-top:2px">out of 1,000 · base 500</div>
                     </div>
                     <div style="text-align:right">
                         <div style="background:{accent};color:#fff;font-size:13px;font-weight:700;padding:8px 18px;border-radius:999px;display:inline-block;margin-bottom:8px">{tier}</div>
-                        <div style="font-size:12px;color:{text};max-width:280px;line-height:1.5">{result["tier_description"]}</div>
+                        <div style="font-size:12px;color:{text};max-width:300px;line-height:1.5">{result["tier_description"]}</div>
                     </div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
             if hard_stop:
-                st.error(f"**Hard Stop:** {result['hard_stop_reason']}")
+                for reason in result["hard_stop_reasons"]:
+                    st.error(f"**Hard Stop:** {reason}")
+                st.warning("Application cannot proceed. Advise borrower on the specific disqualifying factors above and explore alternative products.")
             else:
                 # Recommendation
                 st.info(f"**Recommendation:** {result['recommendation']}")
 
+                # Score bar + tier legend
+                st.progress(min(score / 1000, 1.0))
+                st.markdown(
+                    ' &nbsp; '.join([
+                        f'<span style="font-size:10px;color:#9CA3AF">{t} ({th}+)</span>'
+                        for th, t, _, _ in reversed(TIERS) if th > 0
+                    ]),
+                    unsafe_allow_html=True
+                )
+
+                # Advisory flags
+                flags = result.get("flags", [])
+                if flags:
+                    st.markdown('<div class="section-title" style="margin-top:20px">Advisory Flags</div>', unsafe_allow_html=True)
+                    for flag in flags:
+                        st.warning(flag)
+
                 # Factor breakdown
                 st.markdown('<div class="section-title" style="margin-top:20px">Factor Breakdown</div>', unsafe_allow_html=True)
-                with st.container(border=True):
-                    header_cols = st.columns([3, 2, 1, 1])
-                    header_cols[0].markdown('<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em">Factor</div>', unsafe_allow_html=True)
-                    header_cols[1].markdown('<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em">Input</div>', unsafe_allow_html=True)
-                    header_cols[2].markdown('<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em">Weight</div>', unsafe_allow_html=True)
-                    header_cols[3].markdown('<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;text-align:right">Points</div>', unsafe_allow_html=True)
 
-                    for f in result["factor_breakdown"]:
-                        pts = f["points"]
-                        pts_color = "#16A34A" if pts > 0 else ("#DC2626" if pts < 0 else "#6B7280")
-                        pts_str = f"+{pts}" if pts > 0 else str(pts)
+                # Group by category
+                categories = {}
+                for f in result["factor_breakdown"]:
+                    cat = f.get("category", "Other")
+                    categories.setdefault(cat, []).append(f)
 
-                        row_cols = st.columns([3, 2, 1, 1])
-                        with row_cols[0]:
-                            st.markdown(
-                                f'<div style="font-size:13px;font-weight:500;color:#111827;padding:10px 0 2px 0">{f["factor"]}</div>'
-                                f'<div style="font-size:11px;color:#9CA3AF;padding-bottom:10px">{f["note"]}</div>',
-                                unsafe_allow_html=True
-                            )
-                        row_cols[1].markdown(f'<div style="font-size:13px;color:#374151;padding:10px 0">{f["tier_label"]}</div>', unsafe_allow_html=True)
-                        row_cols[2].markdown(f'<div style="font-size:12px;color:#6B7280;padding:10px 0">{f["weight"]}</div>', unsafe_allow_html=True)
-                        row_cols[3].markdown(f'<div style="font-size:14px;font-weight:700;color:{pts_color};padding:10px 0;text-align:right">{pts_str}</div>', unsafe_allow_html=True)
-                        st.markdown('<hr style="margin:0;border-color:#F3F4F6"/>', unsafe_allow_html=True)
+                for cat_name, factors in categories.items():
+                    cat_total = sum(f["points"] for f in factors)
+                    cat_color = "#16A34A" if cat_total > 0 else ("#DC2626" if cat_total < 0 else "#6B7280")
+                    cat_str = f"+{cat_total}" if cat_total > 0 else str(cat_total)
 
-                # Score bar
-                st.progress(min(score / 1000, 1.0))
-                tier_labels_html = "".join([
-                    f'<span style="font-size:10px;color:#9CA3AF">{t} ({th}+)</span>&nbsp;&nbsp;'
-                    for th, t, _, _ in reversed(TIERS) if th > 0
-                ])
-                st.markdown(tier_labels_html, unsafe_allow_html=True)
+                    with st.expander(f"{cat_name}  ·  {cat_str} pts", expanded=True):
+                        for f in factors:
+                            pts = f["points"]
+                            pts_color = "#16A34A" if pts > 0 else ("#DC2626" if pts < 0 else "#6B7280")
+                            pts_str = f"+{pts}" if pts > 0 else str(pts)
+
+                            row_cols = st.columns([3, 2, 1, 1])
+                            with row_cols[0]:
+                                st.markdown(
+                                    f'<div style="font-size:13px;font-weight:500;color:#111827;padding:8px 0 2px 0">{f["factor"]}</div>'
+                                    f'<div style="font-size:11px;color:#9CA3AF;padding-bottom:8px">{f["note"]}</div>',
+                                    unsafe_allow_html=True
+                                )
+                            row_cols[1].markdown(f'<div style="font-size:13px;color:#374151;padding:8px 0">{f["tier_label"]}</div>', unsafe_allow_html=True)
+                            row_cols[2].markdown(f'<div style="font-size:12px;color:#6B7280;padding:8px 0">{f["weight"]}</div>', unsafe_allow_html=True)
+                            row_cols[3].markdown(f'<div style="font-size:15px;font-weight:700;color:{pts_color};padding:8px 0;text-align:right">{pts_str}</div>', unsafe_allow_html=True)
+                            st.markdown('<hr style="margin:0;border-color:#F3F4F6"/>', unsafe_allow_html=True)
 
                 # Lender routing
                 st.markdown('<div class="section-title" style="margin-top:24px">Lender Routing</div>', unsafe_allow_html=True)
@@ -1382,7 +1578,7 @@ def view_deal():
                             if i < len(matches) - 1:
                                 st.markdown('<hr style="margin:0;border-color:#F3F4F6"/>', unsafe_allow_html=True)
                 else:
-                    st.warning("No lender matches at this score. Consider alternative products or improving the file before submission.")
+                    st.warning("No lender matches at this score. Consider SBA Microloan, CDFI financing, or conventional credit alternatives.")
 
 # ---------------------------------------------------------------------------
 # Sidebar + Router
