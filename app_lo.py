@@ -34,7 +34,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 RAMP_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ── Global ── */
 html, body, [class*="css"] {
@@ -42,19 +42,22 @@ html, body, [class*="css"] {
     -webkit-font-smoothing: antialiased;
 }
 .stApp {
-    background: #F7F7F5;
+    background: #F4F5F7;
 }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
-    background: #12132A !important;
-    border-right: none !important;
+    background: #0F1122 !important;
+    border-right: 1px solid rgba(255,255,255,0.06) !important;
+}
+[data-testid="stSidebar"] > div:first-child {
+    padding-top: 0 !important;
 }
 [data-testid="stSidebar"] .stMarkdown,
 [data-testid="stSidebar"] .stMarkdown p,
 [data-testid="stSidebar"] [data-testid="stText"],
 [data-testid="stSidebar"] [data-testid="stCaption"] {
-    color: rgba(255,255,255,0.75) !important;
+    color: rgba(255,255,255,0.65) !important;
 }
 [data-testid="stSidebar"] h1,
 [data-testid="stSidebar"] h2,
@@ -66,20 +69,20 @@ html, body, [class*="css"] {
     border: none !important;
     text-align: left !important;
     width: 100% !important;
-    padding: 8px 12px !important;
-    border-radius: 6px !important;
+    padding: 7px 14px !important;
+    border-radius: 7px !important;
     font-size: 13px !important;
     font-weight: 500 !important;
-    transition: background 0.15s;
+    transition: background 0.12s;
 }
 [data-testid="stSidebar"] .stButton > button > p,
 [data-testid="stSidebar"] .stButton > button > div,
 [data-testid="stSidebar"] .stButton > button span {
-    color: rgba(255,255,255,0.85) !important;
+    color: rgba(255,255,255,0.7) !important;
     font-weight: 500 !important;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
-    background: rgba(255,255,255,0.08) !important;
+    background: rgba(255,255,255,0.07) !important;
 }
 [data-testid="stSidebar"] .stButton > button:hover > p,
 [data-testid="stSidebar"] .stButton > button:hover > div,
@@ -87,24 +90,18 @@ html, body, [class*="css"] {
     color: #FFFFFF !important;
 }
 [data-testid="stSidebar"] .stButton > button:focus {
-    outline: 2px solid rgba(255,255,255,0.3) !important;
-    outline-offset: 1px !important;
+    outline: none !important;
+    background: rgba(255,255,255,0.07) !important;
 }
 [data-testid="stSidebar"] hr {
-    border-color: rgba(255,255,255,0.1) !important;
+    border-color: rgba(255,255,255,0.08) !important;
+    margin: 10px 0 !important;
 }
-[data-testid="stSidebar"] .stCaption {
-    color: rgba(255,255,255,0.4) !important;
-    font-size: 11px !important;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-/* Sidebar section labels (via st.caption) */
 [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
-    color: rgba(255,255,255,0.4) !important;
-    font-size: 11px !important;
+    color: rgba(255,255,255,0.3) !important;
+    font-size: 10px !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.08em !important;
+    letter-spacing: 0.1em !important;
 }
 
 /* ── Top header / toolbar ── */
@@ -117,22 +114,22 @@ html, body, [class*="css"] {
 
 /* ── Main area ── */
 .main .block-container {
-    padding: 28px 32px 48px 32px !important;
-    max-width: 1280px !important;
+    padding: 32px 40px 56px 40px !important;
+    max-width: 1360px !important;
 }
 
 /* ── Page title ── */
 h1 {
-    font-size: 22px !important;
-    font-weight: 600 !important;
-    color: #111827 !important;
-    letter-spacing: -0.3px !important;
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: #0D1117 !important;
+    letter-spacing: -0.5px !important;
     margin-bottom: 4px !important;
 }
 h2 {
     font-size: 16px !important;
     font-weight: 600 !important;
-    color: #111827 !important;
+    color: #0D1117 !important;
     margin-bottom: 2px !important;
 }
 h3 {
@@ -145,22 +142,26 @@ h3 {
 [data-testid="metric-container"] {
     background: #FFFFFF !important;
     border: 1px solid #E5E7EB !important;
-    border-radius: 10px !important;
-    padding: 16px 20px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
+    border-radius: 12px !important;
+    padding: 20px 24px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+    transition: box-shadow 0.15s !important;
+}
+[data-testid="metric-container"]:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
 }
 [data-testid="metric-container"] [data-testid="stMetricLabel"] {
-    font-size: 12px !important;
-    font-weight: 500 !important;
-    color: #6B7280 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #9CA3AF !important;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
 }
 [data-testid="metric-container"] [data-testid="stMetricValue"] {
-    font-size: 26px !important;
-    font-weight: 700 !important;
-    color: #111827 !important;
-    letter-spacing: -0.5px !important;
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    color: #0D1117 !important;
+    letter-spacing: -0.8px !important;
 }
 [data-testid="metric-container"] [data-testid="stMetricDelta"] {
     font-size: 12px !important;
@@ -173,29 +174,29 @@ h3 {
 
 /* ── Primary buttons ── */
 .stButton > button[kind="primary"] {
-    background: #0066FF !important;
+    background: #1A56DB !important;
     border: none !important;
-    border-radius: 7px !important;
+    border-radius: 8px !important;
     font-size: 13px !important;
-    font-weight: 500 !important;
-    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    padding: 9px 20px !important;
     transition: background 0.15s, box-shadow 0.15s !important;
-    box-shadow: 0 1px 2px rgba(0,102,255,0.25) !important;
+    box-shadow: 0 1px 3px rgba(26,86,219,0.3) !important;
+    letter-spacing: 0.01em !important;
 }
 .stButton > button[kind="primary"] > p,
 .stButton > button[kind="primary"] > div,
 .stButton > button[kind="primary"] span {
     color: #FFFFFF !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
 }
 .stButton > button[kind="primary"]:hover {
-    background: #0052CC !important;
-    box-shadow: 0 2px 8px rgba(0,102,255,0.35) !important;
+    background: #1648C0 !important;
+    box-shadow: 0 3px 10px rgba(26,86,219,0.35) !important;
 }
 .stButton > button[kind="primary"]:focus {
-    outline: 2px solid #0066FF !important;
-    outline-offset: 2px !important;
-    box-shadow: 0 0 0 4px rgba(0,102,255,0.2) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.25) !important;
 }
 
 /* ── Secondary buttons ── */
@@ -203,11 +204,11 @@ h3 {
 .stButton > button:not([kind]) {
     background: #FFFFFF !important;
     border: 1px solid #D1D5DB !important;
-    border-radius: 7px !important;
+    border-radius: 8px !important;
     font-size: 13px !important;
     font-weight: 500 !important;
     padding: 8px 16px !important;
-    transition: border-color 0.15s, box-shadow 0.15s !important;
+    transition: border-color 0.12s, box-shadow 0.12s, background 0.12s !important;
 }
 .stButton > button[kind="secondary"] > p,
 .stButton > button[kind="secondary"] > div,
@@ -220,23 +221,28 @@ h3 {
 }
 .stButton > button:not([kind]):hover,
 .stButton > button[kind="secondary"]:hover {
+    background: #F9FAFB !important;
     border-color: #9CA3AF !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07) !important;
 }
 .stButton > button:not([kind]):focus,
 .stButton > button[kind="secondary"]:focus {
-    outline: 2px solid #0066FF !important;
-    outline-offset: 2px !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.15) !important;
 }
 
 /* ── Containers / Cards ── */
 [data-testid="stVerticalBlockBorderWrapper"] {
     background: #FFFFFF !important;
     border: 1px solid #E5E7EB !important;
-    border-radius: 10px !important;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
     padding: 0 !important;
     overflow: hidden;
+    transition: box-shadow 0.15s !important;
+}
+[data-testid="stVerticalBlockBorderWrapper"]:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07) !important;
 }
 
 /* ── Tabs ── */
@@ -249,37 +255,37 @@ h3 {
     font-size: 13px !important;
     font-weight: 500 !important;
     color: #6B7280 !important;
-    padding: 10px 18px !important;
+    padding: 11px 20px !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
     border-radius: 0 !important;
     background: transparent !important;
     margin-bottom: -1px !important;
+    transition: color 0.12s !important;
 }
 [data-testid="stTabs"] [role="tab"][aria-selected="true"] {
-    color: #111827 !important;
-    border-bottom: 2px solid #0066FF !important;
+    color: #0D1117 !important;
+    font-weight: 600 !important;
+    border-bottom: 2px solid #1A56DB !important;
     background: transparent !important;
 }
 [data-testid="stTabs"] [role="tab"]:focus {
-    outline: 2px solid #0066FF !important;
-    outline-offset: -2px !important;
-    border-radius: 4px !important;
+    outline: none !important;
 }
 
 /* ── Expanders ── */
 [data-testid="stExpander"] {
     border: 1px solid #E5E7EB !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     background: #FFFFFF !important;
     box-shadow: none !important;
     margin-bottom: 8px !important;
 }
 [data-testid="stExpander"] summary {
     font-size: 13px !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     color: #374151 !important;
-    padding: 12px 16px !important;
+    padding: 13px 18px !important;
 }
 [data-testid="stExpander"] summary:hover {
     background: #F9FAFB !important;
@@ -290,34 +296,34 @@ h3 {
 [data-testid="stTextArea"] textarea,
 [data-testid="stSelectbox"] > div > div {
     border: 1px solid #D1D5DB !important;
-    border-radius: 7px !important;
+    border-radius: 8px !important;
     font-size: 13px !important;
     background: #FFFFFF !important;
     color: #111827 !important;
     box-shadow: none !important;
 }
 [data-testid="stTextInput"] input:focus {
-    border-color: #0066FF !important;
-    box-shadow: 0 0 0 3px rgba(0,102,255,0.12) !important;
+    border-color: #1A56DB !important;
+    box-shadow: 0 0 0 3px rgba(26,86,219,0.1) !important;
 }
 [data-testid="stTextInput"] label,
 [data-testid="stTextArea"] label,
 [data-testid="stSelectbox"] label {
-    font-size: 12px !important;
-    font-weight: 500 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
     color: #6B7280 !important;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     margin-bottom: 4px !important;
 }
 
 /* ── Progress bar ── */
 [data-testid="stProgressBar"] > div > div > div {
-    background: #0066FF !important;
+    background: linear-gradient(90deg, #1A56DB, #3B82F6) !important;
     border-radius: 999px !important;
 }
 [data-testid="stProgressBar"] > div > div {
-    background: #D1D5DB !important;
+    background: #E5E7EB !important;
     border-radius: 999px !important;
     height: 6px !important;
 }
@@ -326,30 +332,36 @@ h3 {
 [data-testid="stInfo"] {
     background: #EFF6FF !important;
     border: 1px solid #BFDBFE !important;
-    border-radius: 8px !important;
-    color: #1D4ED8 !important;
+    border-radius: 10px !important;
+    color: #1E40AF !important;
     font-size: 13px !important;
 }
 [data-testid="stSuccess"] {
     background: #F0FDF4 !important;
     border: 1px solid #BBF7D0 !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     color: #15803D !important;
     font-size: 13px !important;
 }
 [data-testid="stError"] {
     background: #FEF2F2 !important;
     border: 1px solid #FECACA !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     color: #DC2626 !important;
     font-size: 13px !important;
 }
 [data-testid="stWarning"] {
     background: #FFFBEB !important;
     border: 1px solid #FDE68A !important;
-    border-radius: 8px !important;
+    border-radius: 10px !important;
     color: #92400E !important;
     font-size: 13px !important;
+}
+
+/* ── Divider ── */
+hr {
+    border-color: #E5E7EB !important;
+    margin: 20px 0 !important;
 }
 
 /* ── Captions / small text ── */
@@ -1585,51 +1597,61 @@ def view_deal():
 # ---------------------------------------------------------------------------
 
 with st.sidebar:
+    # ── Brand header ──────────────────────────────────────────────
     st.markdown(
-        '<div style="padding:20px 16px 8px 16px">'
-        '<div style="font-size:15px;font-weight:700;color:#FFFFFF;letter-spacing:-0.2px">SBA Loan Officer</div>'
-        '<div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px">Demo Mode</div>'
+        '<div style="padding:18px 16px 14px 16px;border-bottom:1px solid rgba(255,255,255,0.07)">'
+        '<div style="font-size:22px;font-weight:800;color:#FFFFFF;letter-spacing:-0.6px;line-height:1.1">SBA Loan Officer</div>'
+        '<div style="margin-top:5px">'
+        '<span style="font-size:10px;font-weight:600;background:rgba(26,86,219,0.35);color:#93C5FD;padding:2px 8px;border-radius:999px;letter-spacing:0.05em;text-transform:uppercase">Demo</span>'
+        '</div>'
         '</div>',
         unsafe_allow_html=True,
     )
 
+    # ── Prototypes ────────────────────────────────────────────────
     st.markdown(
-        '<div style="padding:4px 12px 12px 12px">'
-        '<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Prototypes</div>'
-        '<a href="https://anthony-w-hwang.github.io/sba-prequal/chat.html" target="_blank" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:4px 0">💬&nbsp;&nbsp;AI Chat Prequal</a>'
-        '<a href="https://anthony-w-hwang.github.io/sba-prequal/prequal.html" target="_blank" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:4px 0">📋&nbsp;&nbsp;Prequal Form (v2)</a>'
+        '<div style="padding:12px 14px 8px 14px">'
+        '<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Prototypes</div>'
+        '<a href="https://anthony-w-hwang.github.io/sba-prequal/chat.html" target="_blank" '
+        'style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:13px;font-weight:500;'
+        'text-decoration:none;padding:7px 10px;border-radius:7px;transition:background 0.12s;margin-bottom:2px" '
+        'onmouseover="this.style.background=\'rgba(255,255,255,0.07)\';this.style.color=\'#fff\'" '
+        'onmouseout="this.style.background=\'transparent\';this.style.color=\'rgba(255,255,255,0.65)\'">'
+        '💬&nbsp;&nbsp;AI Chat Prequal</a>'
+        '<a href="https://anthony-w-hwang.github.io/sba-prequal/prequal.html" target="_blank" '
+        'style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.65);font-size:13px;font-weight:500;'
+        'text-decoration:none;padding:7px 10px;border-radius:7px;transition:background 0.12s" '
+        'onmouseover="this.style.background=\'rgba(255,255,255,0.07)\';this.style.color=\'#fff\'" '
+        'onmouseout="this.style.background=\'transparent\';this.style.color=\'rgba(255,255,255,0.65)\'">'
+        '📋&nbsp;&nbsp;Prequal Form (v2)</a>'
         '</div>',
         unsafe_allow_html=True,
     )
-    st.markdown('<hr style="border-color:rgba(255,255,255,0.1);margin:0 0 8px 0"/>', unsafe_allow_html=True)
 
-    if st.button("📋  All deals", use_container_width=True):
+    # ── Nav ───────────────────────────────────────────────────────
+    st.markdown('<div style="height:1px;background:rgba(255,255,255,0.07);margin:4px 14px 8px 14px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="padding:0 14px 4px 14px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.1em">Pipeline</div>', unsafe_allow_html=True)
+
+    if st.button("🗂  All deals", use_container_width=True):
         st.session_state.view = "pipeline"
         st.rerun()
     if st.button("＋  New deal", use_container_width=True):
         st.session_state.view = "new_deal"
         st.rerun()
 
-    st.markdown('<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0"/>', unsafe_allow_html=True)
-    st.markdown('<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;padding:0 12px 6px 12px">Recent deals</div>', unsafe_allow_html=True)
+    # ── Recent deals ──────────────────────────────────────────────
+    st.markdown('<div style="height:1px;background:rgba(255,255,255,0.07);margin:8px 14px"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="padding:0 14px 4px 14px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.28);text-transform:uppercase;letter-spacing:0.1em">Recent deals</div>', unsafe_allow_html=True)
 
     deals = list_deals()
     for d in deals[:8]:
-        badge_color = {"Ready":"#16A34A","Gaps":"#DC2626","Review":"#D97706","Submitted":"#6B7280","Intake":"#6B7280","Extracting":"#1D4ED8"}.get(d["status"],"#6B7280")
+        dot_color = {"Ready":"#22C55E","Gaps":"#EF4444","Review":"#F59E0B","Submitted":"#6B7280","Intake":"#6B7280","Extracting":"#3B82F6"}.get(d["status"],"#6B7280")
         flag = "🚨 " if d["urgency"] else ""
         label = f'{flag}{d["borrower_name"][:22]}'
         if st.button(label, key=f"sb_{d['deal_id']}", use_container_width=True):
             st.session_state.active_deal = d["deal_id"]
             st.session_state.view = "deal"
             st.rerun()
-
-    st.markdown('<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0"/>', unsafe_allow_html=True)
-    st.markdown(
-        '<div style="padding:0 12px;font-size:11px;color:rgba(255,255,255,0.3);line-height:1.6">'
-        'In production:<br>Upload docs → AI extracts fields<br>Gaps auto-detected<br>1-click lender package'
-        '</div>',
-        unsafe_allow_html=True,
-    )
 
 
 # Router
