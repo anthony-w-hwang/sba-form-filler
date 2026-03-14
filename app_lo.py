@@ -117,8 +117,12 @@ html, body, [class*="css"] {
 
 /* ── Main area ── */
 .main .block-container {
-    padding: 24px 40px 56px 40px !important;
+    padding: 12px 40px 56px 40px !important;
     max-width: 1360px !important;
+}
+.main .block-container > div:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 
 /* ── Page title ── */
@@ -688,35 +692,57 @@ def view_pipeline():
     pipeline_val = sum(d["loan_amount"] or 0 for d in deals if d["status"] not in ("Submitted", "Approved", "Rejected"))
     approved_val = sum(d["loan_amount"] or 0 for d in deals if d["status"] == "Approved")
 
-    # Row 1 — pipeline stats
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Total deals", total)
-    c2.metric("Ready to package", ready)
-    c3.metric("Needs attention", gaps)
-    c4.metric("Urgent", urgent)
-    c5.metric("Pipeline value", fmt_amount(pipeline_val))
+    # Row 1 — Pipeline stats
+    st.markdown(
+        f'''<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px">
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+            <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Total deals</div>
+            <div style="font-size:28px;font-weight:800;color:#0D1117;letter-spacing:-0.8px">{total}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+            <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Ready to package</div>
+            <div style="font-size:28px;font-weight:800;color:#15803D;letter-spacing:-0.8px">{ready}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+            <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Needs attention</div>
+            <div style="font-size:28px;font-weight:800;color:{"#DC2626" if gaps > 0 else "#0D1117"};letter-spacing:-0.8px">{gaps}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+            <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Urgent</div>
+            <div style="font-size:28px;font-weight:800;color:{"#D97706" if urgent > 0 else "#0D1117"};letter-spacing:-0.8px">{urgent}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+            <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Pipeline value</div>
+            <div style="font-size:28px;font-weight:800;color:#0D1117;letter-spacing:-0.8px">{fmt_amount(pipeline_val)}</div>
+        </div>
+        </div>''',
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-
-    # Row 2 — outcomes
-    st.markdown('<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Outcomes</div>', unsafe_allow_html=True)
-    o1, o2, o3, o4 = st.columns(4)
-    o1.metric("Submitted", submitted)
-    o2.metric("Approved", approved)
-    o3.metric("Rejected", rejected)
-    o4.metric("Approved value", fmt_amount(approved_val))
-
-    # Style outcome row cards
-    st.markdown("""
-    <style>
-    div[data-testid="column"]:nth-last-child(-n+4) [data-testid="metric-container"] {
-        background: #FAFAFA !important;
-        border: 1px solid #E5E7EB !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    # Row 2 — Outcomes (visually distinct dark section)
+    st.markdown(
+        f'''<div style="background:#0F1122;border-radius:14px;padding:18px 20px;margin-bottom:16px">
+        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:14px">Lender Outcomes</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 18px">
+            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Submitted</div>
+            <div style="font-size:26px;font-weight:800;color:#E2E8F0;letter-spacing:-0.6px">{submitted}</div>
+        </div>
+        <div style="background:rgba(21,128,61,0.2);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px 18px">
+            <div style="font-size:11px;font-weight:600;color:rgba(134,239,172,0.7);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Approved</div>
+            <div style="font-size:26px;font-weight:800;color:#86EFAC;letter-spacing:-0.6px">{approved}</div>
+        </div>
+        <div style="background:rgba(185,28,28,0.2);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:14px 18px">
+            <div style="font-size:11px;font-weight:600;color:rgba(252,165,165,0.7);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Rejected</div>
+            <div style="font-size:26px;font-weight:800;color:#FCA5A5;letter-spacing:-0.6px">{rejected}</div>
+        </div>
+        <div style="background:rgba(21,128,61,0.12);border:1px solid rgba(34,197,94,0.15);border-radius:10px;padding:14px 18px">
+            <div style="font-size:11px;font-weight:600;color:rgba(134,239,172,0.6);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Approved value</div>
+            <div style="font-size:26px;font-weight:800;color:#86EFAC;letter-spacing:-0.6px">{fmt_amount(approved_val)}</div>
+        </div>
+        </div></div>''',
+        unsafe_allow_html=True,
+    )
 
     # Table header
     hcols = st.columns([3, 2, 2, 2, 2, 1])
