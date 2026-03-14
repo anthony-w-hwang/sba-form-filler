@@ -615,6 +615,8 @@ STATUS_BADGE = {
     "Gaps":       '<span class="badge badge-red">Gaps</span>',
     "Ready":      '<span class="badge badge-green">Ready</span>',
     "Submitted":  '<span class="badge badge-gray">Submitted</span>',
+    "Approved":   '<span class="badge badge-green">✓ Approved</span>',
+    "Rejected":   '<span class="badge badge-red">✗ Rejected</span>',
 }
 
 CONF_DOT = {"high": "🟢", "medium": "🟡", "low": "🔴"}
@@ -676,18 +678,43 @@ def view_pipeline():
     deals = list_deals()
 
     # KPI metrics
-    total = len(deals)
-    ready = sum(1 for d in deals if d["status"] == "Ready")
-    gaps  = sum(1 for d in deals if d["status"] == "Gaps")
-    pipeline_val = sum(d["loan_amount"] or 0 for d in deals if d["status"] not in ("Submitted",))
-    urgent = sum(1 for d in deals if d["urgency"])
+    total        = len(deals)
+    ready        = sum(1 for d in deals if d["status"] == "Ready")
+    gaps         = sum(1 for d in deals if d["status"] == "Gaps")
+    urgent       = sum(1 for d in deals if d["urgency"])
+    submitted    = sum(1 for d in deals if d["status"] == "Submitted")
+    approved     = sum(1 for d in deals if d["status"] == "Approved")
+    rejected     = sum(1 for d in deals if d["status"] == "Rejected")
+    pipeline_val = sum(d["loan_amount"] or 0 for d in deals if d["status"] not in ("Submitted", "Approved", "Rejected"))
+    approved_val = sum(d["loan_amount"] or 0 for d in deals if d["status"] == "Approved")
 
+    # Row 1 — pipeline stats
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Total deals", total)
     c2.metric("Ready to package", ready)
     c3.metric("Needs attention", gaps)
     c4.metric("Urgent", urgent)
     c5.metric("Pipeline value", fmt_amount(pipeline_val))
+
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+
+    # Row 2 — outcomes
+    st.markdown('<div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Outcomes</div>', unsafe_allow_html=True)
+    o1, o2, o3, o4 = st.columns(4)
+    o1.metric("Submitted", submitted)
+    o2.metric("Approved", approved)
+    o3.metric("Rejected", rejected)
+    o4.metric("Approved value", fmt_amount(approved_val))
+
+    # Style outcome row cards
+    st.markdown("""
+    <style>
+    div[data-testid="column"]:nth-last-child(-n+4) [data-testid="metric-container"] {
+        background: #FAFAFA !important;
+        border: 1px solid #E5E7EB !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
@@ -812,6 +839,47 @@ def view_deal():
         if new_urgent != bool(deal["urgency"]):
             set_urgency(deal_id, new_urgent)
             st.rerun()
+
+    # ── Application Decision Banner & Controls ────────────────────
+    status = deal["status"]
+    if status == "Approved":
+        st.markdown(
+            '<div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:10px;padding:14px 20px;'
+            'display:flex;align-items:center;justify-content:space-between;margin-top:8px">'
+            '<div style="display:flex;align-items:center;gap:10px">'
+            '<span style="font-size:20px">✅</span>'
+            '<div><div style="font-size:14px;font-weight:700;color:#15803D">Application Approved</div>'
+            '<div style="font-size:12px;color:#16A34A;margin-top:1px">Lender has approved this application</div></div>'
+            '</div></div>',
+            unsafe_allow_html=True,
+        )
+    elif status == "Rejected":
+        st.markdown(
+            '<div style="background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:10px;padding:14px 20px;'
+            'display:flex;align-items:center;justify-content:space-between;margin-top:8px">'
+            '<div style="display:flex;align-items:center;gap:10px">'
+            '<span style="font-size:20px">❌</span>'
+            '<div><div style="font-size:14px;font-weight:700;color:#DC2626">Application Rejected</div>'
+            '<div style="font-size:12px;color:#EF4444;margin-top:1px">Lender has declined this application</div></div>'
+            '</div></div>',
+            unsafe_allow_html=True,
+        )
+    elif status == "Submitted":
+        st.markdown(
+            '<div style="background:#F8FAFC;border:1.5px solid #CBD5E1;border-radius:10px;padding:14px 20px;margin-top:8px">'
+            '<div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:10px">📬 Application submitted — record lender decision</div>',
+            unsafe_allow_html=True,
+        )
+        dc1, dc2, dc3 = st.columns([2, 2, 6])
+        with dc1:
+            if st.button("✓ Mark Approved", type="primary", use_container_width=True):
+                update_deal_status(deal_id, "Approved")
+                st.rerun()
+        with dc2:
+            if st.button("✗ Mark Rejected", use_container_width=True):
+                update_deal_status(deal_id, "Rejected")
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
@@ -1648,7 +1716,7 @@ with st.sidebar:
 
     deals = list_deals()
     for d in deals[:8]:
-        dot_color = {"Ready":"#22C55E","Gaps":"#EF4444","Review":"#F59E0B","Submitted":"#6B7280","Intake":"#6B7280","Extracting":"#3B82F6"}.get(d["status"],"#6B7280")
+        dot_color = {"Ready":"#22C55E","Gaps":"#EF4444","Review":"#F59E0B","Submitted":"#6B7280","Intake":"#6B7280","Extracting":"#3B82F6","Approved":"#22C55E","Rejected":"#EF4444"}.get(d["status"],"#6B7280")
         flag = "🚨 " if d["urgency"] else ""
         label = f'{flag}{d["borrower_name"][:22]}'
         if st.button(label, key=f"sb_{d['deal_id']}", use_container_width=True):

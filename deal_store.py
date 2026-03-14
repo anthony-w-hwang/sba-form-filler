@@ -10,7 +10,7 @@ from datetime import datetime
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "deals.db")
 
-STATUSES = ["Intake", "Extracting", "Review", "Gaps", "Ready", "Submitted"]
+STATUSES = ["Intake", "Extracting", "Review", "Gaps", "Ready", "Submitted", "Approved", "Rejected"]
 
 # ---------------------------------------------------------------------------
 # Schema
