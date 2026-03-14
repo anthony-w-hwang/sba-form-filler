@@ -1,5 +1,4 @@
 import streamlit as st
-import os
 
 st.set_page_config(
     page_title="SBA Prequal — AI Chat",
@@ -14,8 +13,8 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-html_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prequal_chat.html")
-with open(html_path, "r") as f:
-    html_content = f.read()
-
-st.components.v1.html(html_content, height=900, scrolling=True)
+st.markdown(
+    '<iframe src="https://anthony-w-hwang.github.io/sba-prequal/chat.html" '
+    'width="100%" height="900" style="border:none;border-radius:12px;"></iframe>',
+    unsafe_allow_html=True,
+)
