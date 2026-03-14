@@ -1625,8 +1625,8 @@ with st.sidebar:
     st.markdown(
         '<div style="padding:0 12px 6px 12px">'
         '<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Prototypes</div>'
-        '<a href="/Prequal_Chat" target="_self" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:6px 0">💬&nbsp;&nbsp;AI Chat Prequal</a>'
-        '<a href="/Prequal_Form" target="_self" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:6px 0">📋&nbsp;&nbsp;Prequal Form (v2)</a>'
+        '<a href="/Prequal_Chat" target="_top" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:6px 0">💬&nbsp;&nbsp;AI Chat Prequal</a>'
+        '<a href="/Prequal_Form" target="_top" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:6px 0">📋&nbsp;&nbsp;Prequal Form (v2)</a>'
         '</div>',
         unsafe_allow_html=True,
     )

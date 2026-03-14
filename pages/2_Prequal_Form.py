@@ -9,7 +9,7 @@ st.set_page_config(
 
 with st.sidebar:
     st.markdown(
-        '<a href="/" target="_self" style="display:inline-block;color:#374151;font-size:13px;font-weight:500;text-decoration:none;padding:8px 12px;background:#fff;border:1px solid #D1D5DB;border-radius:7px;width:100%;box-sizing:border-box">← Back to Loan Officer Dashboard</a>',
+        '<a href="/" target="_top" style="display:inline-block;color:#374151;font-size:13px;font-weight:500;text-decoration:none;padding:8px 12px;background:#fff;border:1px solid #D1D5DB;border-radius:7px;width:100%;box-sizing:border-box">← Back to Loan Officer Dashboard</a>',
         unsafe_allow_html=True,
     )
 
