@@ -117,15 +117,12 @@ html, body, [class*="css"] {
 
 /* ── Main area ── */
 .main .block-container {
-    padding: 4px 40px 56px 40px !important;
+    padding: 24px 40px 56px 40px !important;
     max-width: 1360px !important;
 }
 .main .block-container > div:first-child {
     margin-top: 0 !important;
     padding-top: 0 !important;
-}
-.stMainBlockContainer {
-    padding-top: 4px !important;
 }
 
 /* ── Page title ── */
@@ -695,9 +692,10 @@ def view_pipeline():
     pipeline_val = sum(d["loan_amount"] or 0 for d in deals if d["status"] not in ("Submitted", "Approved", "Rejected"))
     approved_val = sum(d["loan_amount"] or 0 for d in deals if d["status"] == "Approved")
 
-    # Row 1 — Pipeline stats
+    # Row 1 — Open Applications
+    st.markdown('<div style="font-size:15px;font-weight:700;color:#0D1117;letter-spacing:-0.2px;margin-bottom:10px">Open Applications</div>', unsafe_allow_html=True)
     st.markdown(
-        f'''<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px">
+        f'''<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">
         <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;padding:16px 20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
             <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Total deals</div>
             <div style="font-size:28px;font-weight:800;color:#0D1117;letter-spacing:-0.8px">{total}</div>
@@ -725,7 +723,7 @@ def view_pipeline():
     # Row 2 — Outcomes
     st.markdown(
         f'''<div style="margin-bottom:16px">
-        <div style="font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px">Lender Outcomes</div>
+        <div style="font-size:15px;font-weight:700;color:#0D1117;letter-spacing:-0.2px;margin-bottom:10px">Application Outcomes</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
         <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:16px 20px">
             <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Submitted</div>
