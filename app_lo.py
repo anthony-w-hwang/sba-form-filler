@@ -668,16 +668,14 @@ def build_zip(files, name):
 # ---------------------------------------------------------------------------
 
 def view_pipeline():
-    # Header row
     col_h, col_btn = st.columns([5, 1])
     with col_h:
-        st.title("Deals")
+        st.markdown('<div style="font-size:24px;font-weight:700;color:#0D1117;letter-spacing:-0.5px;padding-top:6px">Deals</div>', unsafe_allow_html=True)
     with col_btn:
-        st.markdown("<div style='padding-top:8px'>", unsafe_allow_html=True)
         if st.button("+ New deal", type="primary", use_container_width=True):
             st.session_state.view = "new_deal"
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
     deals = list_deals()
 
