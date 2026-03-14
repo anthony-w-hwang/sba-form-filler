@@ -7,9 +7,12 @@ Each extracted field carries a confidence score and source text snippet.
 import os
 import json
 import pdfplumber
-import anthropic
-
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+try:
+    import anthropic
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+except Exception:
+    anthropic = None
+    client = None
 
 # ---------------------------------------------------------------------------
 # Document types

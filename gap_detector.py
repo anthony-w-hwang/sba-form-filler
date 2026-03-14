@@ -5,9 +5,12 @@ and lender risk flags. Returns a prioritized list of gaps.
 """
 
 import os
-import anthropic
-
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+try:
+    import anthropic
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+except Exception:
+    anthropic = None
+    client = None
 
 # ---------------------------------------------------------------------------
 # Gap types and severity

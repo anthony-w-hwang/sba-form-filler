@@ -1,3 +1,6 @@
-fillpdf==0.7.3
-pdfrw==0.4
+streamlit
+anthropic
+pdfplumber
+reportlab
+pdfrw
 requests
