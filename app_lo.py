@@ -117,12 +117,15 @@ html, body, [class*="css"] {
 
 /* ── Main area ── */
 .main .block-container {
-    padding: 12px 40px 56px 40px !important;
+    padding: 4px 40px 56px 40px !important;
     max-width: 1360px !important;
 }
 .main .block-container > div:first-child {
     margin-top: 0 !important;
     padding-top: 0 !important;
+}
+.stMainBlockContainer {
+    padding-top: 4px !important;
 }
 
 /* ── Page title ── */
@@ -719,26 +722,26 @@ def view_pipeline():
         unsafe_allow_html=True,
     )
 
-    # Row 2 — Outcomes (visually distinct dark section)
+    # Row 2 — Outcomes
     st.markdown(
-        f'''<div style="background:#0F1122;border-radius:14px;padding:18px 20px;margin-bottom:16px">
-        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:14px">Lender Outcomes</div>
+        f'''<div style="margin-bottom:16px">
+        <div style="font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px">Lender Outcomes</div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
-        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 18px">
-            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Submitted</div>
-            <div style="font-size:26px;font-weight:800;color:#E2E8F0;letter-spacing:-0.6px">{submitted}</div>
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:16px 20px">
+            <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Submitted</div>
+            <div style="font-size:28px;font-weight:800;color:#374151;letter-spacing:-0.8px">{submitted}</div>
         </div>
-        <div style="background:rgba(21,128,61,0.2);border:1px solid rgba(34,197,94,0.25);border-radius:10px;padding:14px 18px">
-            <div style="font-size:11px;font-weight:600;color:rgba(134,239,172,0.7);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Approved</div>
-            <div style="font-size:26px;font-weight:800;color:#86EFAC;letter-spacing:-0.6px">{approved}</div>
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px 20px">
+            <div style="font-size:11px;font-weight:600;color:#16A34A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Approved</div>
+            <div style="font-size:28px;font-weight:800;color:#15803D;letter-spacing:-0.8px">{approved}</div>
         </div>
-        <div style="background:rgba(185,28,28,0.2);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:14px 18px">
-            <div style="font-size:11px;font-weight:600;color:rgba(252,165,165,0.7);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Rejected</div>
-            <div style="font-size:26px;font-weight:800;color:#FCA5A5;letter-spacing:-0.6px">{rejected}</div>
+        <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:16px 20px">
+            <div style="font-size:11px;font-weight:600;color:#DC2626;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Rejected</div>
+            <div style="font-size:28px;font-weight:800;color:#B91C1C;letter-spacing:-0.8px">{rejected}</div>
         </div>
-        <div style="background:rgba(21,128,61,0.12);border:1px solid rgba(34,197,94,0.15);border-radius:10px;padding:14px 18px">
-            <div style="font-size:11px;font-weight:600;color:rgba(134,239,172,0.6);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Approved value</div>
-            <div style="font-size:26px;font-weight:800;color:#86EFAC;letter-spacing:-0.6px">{fmt_amount(approved_val)}</div>
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px 20px">
+            <div style="font-size:11px;font-weight:600;color:#16A34A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Approved value</div>
+            <div style="font-size:28px;font-weight:800;color:#15803D;letter-spacing:-0.8px">{fmt_amount(approved_val)}</div>
         </div>
         </div></div>''',
         unsafe_allow_html=True,
