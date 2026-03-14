@@ -106,15 +106,18 @@ html, body, [class*="css"] {
 
 /* ── Top header / toolbar ── */
 [data-testid="stHeader"] {
-    background: transparent !important;
+    display: none !important;
 }
 [data-testid="stToolbar"] {
-    display: none;
+    display: none !important;
+}
+[data-testid="stDecoration"] {
+    display: none !important;
 }
 
 /* ── Main area ── */
 .main .block-container {
-    padding: 32px 40px 56px 40px !important;
+    padding: 24px 40px 56px 40px !important;
     max-width: 1360px !important;
 }
 
