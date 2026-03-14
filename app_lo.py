@@ -12,6 +12,7 @@ from deal_store import (
     save_profile, get_profile, save_package, get_packages,
 )
 from gap_detector import detect_gaps, readiness_score
+from underwriting_engine import score_application, score_from_profile, TIERS
 from sba_form_filler import (
     download_form, build_1919_fields, build_413_fields, fill_form,
     FORMS_DIR, OUTPUT_DIR,
@@ -799,8 +800,8 @@ def view_deal():
 
     st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
 
-    tab_docs, tab_review, tab_gaps, tab_package = st.tabs([
-        "Documents", "Review & Edit", "Gaps", "Package"
+    tab_docs, tab_review, tab_gaps, tab_package, tab_uw = st.tabs([
+        "Documents", "Review & Edit", "Gaps", "Package", "Underwriting"
     ])
 
     # ----------------------------------------------------------------
@@ -1205,6 +1206,183 @@ def view_deal():
                     f'{icon}&nbsp;&nbsp;{label}{note}</div>',
                     unsafe_allow_html=True,
                 )
+
+    # ----------------------------------------------------------------
+    # Tab 5 — Underwriting
+    # ----------------------------------------------------------------
+    with tab_uw:
+        profile, meta = get_profile(deal_id)
+
+        st.markdown('<div class="section-title">Underwriting Score</div>', unsafe_allow_html=True)
+        st.caption("We are a broker, not a lender. This score pre-qualifies the file and estimates approval probability — the banking partner makes the final credit decision.")
+
+        # ── Input form ──────────────────────────────────────────────
+        with st.expander("Enter underwriting inputs", expanded=not st.session_state.get(f"uw_scored_{deal_id}")):
+            with st.form(f"uw_form_{deal_id}"):
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    fico_tier = st.selectbox("Primary Guarantor FICO", [
+                        "", "740+", "720-739", "700-719", "680-699",
+                        "660-679", "650-659", "below_650"
+                    ], help="Credit score of the primary guarantor")
+
+                    dscr_tier = st.selectbox("Debt Service Coverage Ratio (DSCR)", [
+                        "", "above_1.5", "1.35-1.5", "1.25-1.35",
+                        "1.15-1.25", "1.0-1.15", "below_1.0"
+                    ], help="SBA standard: DSCR ≥ 1.25x")
+
+                    business_age_tier = st.selectbox("Business Age", [
+                        "", "10+", "5-10", "3-5", "2-3", "1-2", "under_1"
+                    ], help="Years in operation")
+
+                with col2:
+                    industry = st.selectbox("Industry", [
+                        "", "healthcare", "professional_services", "technology",
+                        "manufacturing", "wholesale", "transportation",
+                        "retail", "construction", "restaurant_food_service",
+                        "other", "gambling_adult"
+                    ], format_func=lambda x: x.replace("_", " ").title() if x else "")
+
+                    experience_tier = st.selectbox("Owner Industry Experience", [
+                        "", "10+", "5-10", "3-5", "1-3", "under_1"
+                    ], help="Years of management/industry experience")
+
+                st.markdown("**Flags & Compensating Factors**")
+                fc1, fc2, fc3 = st.columns(3)
+                with fc1:
+                    delinquent = st.checkbox("Delinquent federal debt", help="Hard stop — triggers automatic decline")
+                    criminal = st.checkbox("Criminal history disclosed")
+                with fc2:
+                    positive_cf = st.checkbox("Positive cash flow confirmed", value=True)
+                    collateral = st.checkbox("Collateral available")
+                with fc3:
+                    prior_default = st.checkbox("Prior SBA default", help="Hard stop")
+                    active_bk = st.checkbox("Active bankruptcy", help="Hard stop")
+
+                submitted = st.form_submit_button("Run underwriting score", type="primary", use_container_width=True)
+
+            if submitted:
+                hard_stops = []
+                if prior_default:
+                    hard_stops.append("prior_sba_default")
+                if active_bk:
+                    hard_stops.append("active_bankruptcy")
+
+                inputs = {
+                    "fico_tier": fico_tier,
+                    "dscr_tier": dscr_tier,
+                    "business_age_tier": business_age_tier,
+                    "industry": industry,
+                    "experience_tier": experience_tier,
+                    "delinquent_federal_debt": delinquent,
+                    "criminal_history": criminal,
+                    "positive_cash_flow": positive_cf,
+                    "collateral_available": collateral,
+                    "hard_stops": hard_stops,
+                }
+                st.session_state[f"uw_result_{deal_id}"] = inputs
+                st.session_state[f"uw_scored_{deal_id}"] = True
+                st.rerun()
+
+        # ── Results ─────────────────────────────────────────────────
+        if st.session_state.get(f"uw_scored_{deal_id}"):
+            inputs = st.session_state[f"uw_result_{deal_id}"]
+            result = score_application(inputs)
+
+            score = result["score"]
+            tier  = result["tier"]
+            color = result["tier_color"]
+            hard_stop = result["hard_stop"]
+
+            COLOR_MAP = {
+                "green":  ("#D1FAE5", "#065F46", "#10B981"),
+                "blue":   ("#DBEAFE", "#1E40AF", "#3B82F6"),
+                "yellow": ("#FEF9C3", "#92400E", "#F59E0B"),
+                "orange": ("#FFEDD5", "#9A3412", "#F97316"),
+                "red":    ("#FEE2E2", "#991B1B", "#EF4444"),
+            }
+            bg, text, accent = COLOR_MAP.get(color, COLOR_MAP["red"])
+
+            # Score card
+            st.markdown(f"""
+            <div style="background:{bg};border:1.5px solid {accent};border-radius:12px;padding:24px 28px;margin-bottom:20px">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                    <div>
+                        <div style="font-size:13px;font-weight:600;color:{text};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">
+                            Underwriting Score
+                        </div>
+                        <div style="font-size:52px;font-weight:800;color:{text};letter-spacing:-2px;line-height:1">{score}</div>
+                        <div style="font-size:12px;color:{text};opacity:0.7;margin-top:2px">out of 1,000 · base 500</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="background:{accent};color:#fff;font-size:13px;font-weight:700;padding:8px 18px;border-radius:999px;display:inline-block;margin-bottom:8px">{tier}</div>
+                        <div style="font-size:12px;color:{text};max-width:280px;line-height:1.5">{result["tier_description"]}</div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if hard_stop:
+                st.error(f"**Hard Stop:** {result['hard_stop_reason']}")
+            else:
+                # Recommendation
+                st.info(f"**Recommendation:** {result['recommendation']}")
+
+                # Factor breakdown
+                st.markdown('<div class="section-title" style="margin-top:20px">Factor Breakdown</div>', unsafe_allow_html=True)
+                with st.container(border=True):
+                    header_cols = st.columns([3, 2, 1, 1])
+                    header_cols[0].markdown('<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em">Factor</div>', unsafe_allow_html=True)
+                    header_cols[1].markdown('<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em">Input</div>', unsafe_allow_html=True)
+                    header_cols[2].markdown('<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em">Weight</div>', unsafe_allow_html=True)
+                    header_cols[3].markdown('<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;text-align:right">Points</div>', unsafe_allow_html=True)
+
+                    for f in result["factor_breakdown"]:
+                        pts = f["points"]
+                        pts_color = "#16A34A" if pts > 0 else ("#DC2626" if pts < 0 else "#6B7280")
+                        pts_str = f"+{pts}" if pts > 0 else str(pts)
+
+                        row_cols = st.columns([3, 2, 1, 1])
+                        with row_cols[0]:
+                            st.markdown(
+                                f'<div style="font-size:13px;font-weight:500;color:#111827;padding:10px 0 2px 0">{f["factor"]}</div>'
+                                f'<div style="font-size:11px;color:#9CA3AF;padding-bottom:10px">{f["note"]}</div>',
+                                unsafe_allow_html=True
+                            )
+                        row_cols[1].markdown(f'<div style="font-size:13px;color:#374151;padding:10px 0">{f["tier_label"]}</div>', unsafe_allow_html=True)
+                        row_cols[2].markdown(f'<div style="font-size:12px;color:#6B7280;padding:10px 0">{f["weight"]}</div>', unsafe_allow_html=True)
+                        row_cols[3].markdown(f'<div style="font-size:14px;font-weight:700;color:{pts_color};padding:10px 0;text-align:right">{pts_str}</div>', unsafe_allow_html=True)
+                        st.markdown('<hr style="margin:0;border-color:#F3F4F6"/>', unsafe_allow_html=True)
+
+                # Score bar
+                st.progress(min(score / 1000, 1.0))
+                tier_labels_html = "".join([
+                    f'<span style="font-size:10px;color:#9CA3AF">{t} ({th}+)</span>&nbsp;&nbsp;'
+                    for th, t, _, _ in reversed(TIERS) if th > 0
+                ])
+                st.markdown(tier_labels_html, unsafe_allow_html=True)
+
+                # Lender routing
+                st.markdown('<div class="section-title" style="margin-top:24px">Lender Routing</div>', unsafe_allow_html=True)
+                matches = result["lender_matches"]
+                if matches:
+                    with st.container(border=True):
+                        for i, lender in enumerate(matches):
+                            cols = st.columns([3, 4, 2])
+                            with cols[0]:
+                                rank = "⭐ Best Match" if i == 0 else f"Option {i+1}"
+                                st.markdown(
+                                    f'<div style="font-size:12px;color:#6B7280;padding:10px 0 2px 0">{rank}</div>'
+                                    f'<div style="font-size:14px;font-weight:600;color:#111827;padding-bottom:10px">{lender["name"]}</div>',
+                                    unsafe_allow_html=True
+                                )
+                            cols[1].markdown(f'<div style="font-size:12px;color:#6B7280;padding:10px 0">{lender["notes"]}</div>', unsafe_allow_html=True)
+                            cols[2].markdown(f'<div style="font-size:12px;color:#374151;padding:10px 0"><strong>Turnaround:</strong><br>{lender["turnaround"]}</div>', unsafe_allow_html=True)
+                            if i < len(matches) - 1:
+                                st.markdown('<hr style="margin:0;border-color:#F3F4F6"/>', unsafe_allow_html=True)
+                else:
+                    st.warning("No lender matches at this score. Consider alternative products or improving the file before submission.")
 
 # ---------------------------------------------------------------------------
 # Sidebar + Router
