@@ -1586,12 +1586,22 @@ def view_deal():
 
 with st.sidebar:
     st.markdown(
-        '<div style="padding:20px 16px 16px 16px">'
+        '<div style="padding:20px 16px 8px 16px">'
         '<div style="font-size:15px;font-weight:700;color:#FFFFFF;letter-spacing:-0.2px">SBA Loan Officer</div>'
         '<div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px">Demo Mode</div>'
         '</div>',
         unsafe_allow_html=True,
     )
+
+    st.markdown(
+        '<div style="padding:4px 12px 12px 12px">'
+        '<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Prototypes</div>'
+        '<a href="https://anthony-w-hwang.github.io/sba-prequal/chat.html" target="_blank" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:4px 0">💬&nbsp;&nbsp;AI Chat Prequal</a>'
+        '<a href="https://anthony-w-hwang.github.io/sba-prequal/prequal.html" target="_blank" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:4px 0">📋&nbsp;&nbsp;Prequal Form (v2)</a>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown('<hr style="border-color:rgba(255,255,255,0.1);margin:0 0 8px 0"/>', unsafe_allow_html=True)
 
     if st.button("📋  All deals", use_container_width=True):
         st.session_state.view = "pipeline"
@@ -1621,15 +1631,6 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    st.markdown('<hr style="border-color:rgba(255,255,255,0.1);margin:12px 0"/>', unsafe_allow_html=True)
-    st.markdown(
-        '<div style="padding:0 12px 6px 12px">'
-        '<div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Prototypes</div>'
-        '<a href="https://anthony-w-hwang.github.io/sba-prequal/chat.html" target="_blank" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:6px 0">💬&nbsp;&nbsp;AI Chat Prequal</a>'
-        '<a href="https://anthony-w-hwang.github.io/sba-prequal/prequal.html" target="_blank" style="display:block;color:rgba(255,255,255,0.75);font-size:13px;font-weight:500;text-decoration:none;padding:6px 0">📋&nbsp;&nbsp;Prequal Form (v2)</a>'
-        '</div>',
-        unsafe_allow_html=True,
-    )
 
 # Router
 if st.session_state.view == "pipeline":
